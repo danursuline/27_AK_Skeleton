@@ -7,19 +7,13 @@
 
 package first.robot.subsystems.drive;
 
-import static org.wpilib.units.Units.*;
+import static org.wpilib.units.Units.MetersPerSecond;
+import static org.wpilib.units.Units.Volts;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.ModuleConfig;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import first.robot.Constants;
-import first.robot.Constants.Mode;
-import first.robot.generated.TunerConstants;
-// import frc.robot.util.LocalADStarAK;
+// import frc.robot.util.LocalADStarAK; // we are not using this and will use ChoreoLib instead 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;
@@ -45,6 +39,16 @@ import org.wpilib.math.numbers.N3;
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
+import first.robot.Constants;
+import first.robot.Constants.Mode;
+import first.robot.generated.TunerConstants;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
