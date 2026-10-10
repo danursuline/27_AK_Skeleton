@@ -10,10 +10,16 @@ package first.robot.subsystems.drive;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.Volts;
 
-// import frc.robot.util.LocalADStarAK; // we are not using this and will use ChoreoLib instead 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import first.robot.Constants;
+import first.robot.Constants.Mode;
+import first.robot.generated.TunerConstants;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;
@@ -22,8 +28,6 @@ import org.wpilib.command2.sysid.SysIdRoutine;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.MatchState;
 import org.wpilib.driverstation.RobotState;
-// import org.wpilib.hardware.hal.FRCNetComm.tInstances;
-// import org.wpilib.hardware.hal.FRCNetComm.tResourceType;
 import org.wpilib.math.estimator.SwerveDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -40,15 +44,9 @@ import org.wpilib.math.system.DCMotor;
 import org.wpilib.util.Alert;
 import org.wpilib.util.Alert.Level;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.ModuleConfig;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-
-import first.robot.Constants;
-import first.robot.Constants.Mode;
-import first.robot.generated.TunerConstants;
+// import org.wpilib.hardware.hal.FRCNetComm.tInstances;
+// import org.wpilib.hardware.hal.FRCNetComm.tResourceType;
+// import frc.robot.util.LocalADStarAK; // we are not using this and will use ChoreoLib instead
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
