@@ -8,7 +8,7 @@
 package first.robot;
 
 import first.robot.commands.DriveCommands;
-import first.robot.generated.OLDTunerConstants;
+import first.robot.generated.TunerConstants;
 import first.robot.subsystems.drive.Drive;
 import first.robot.subsystems.drive.GyroIO;
 import first.robot.subsystems.drive.GyroIOPigeon2;
@@ -51,10 +51,10 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIOPigeon2(),
-                new ModuleIOTalonFX(OLDTunerConstants.FrontLeft),
-                new ModuleIOTalonFX(OLDTunerConstants.FrontRight),
-                new ModuleIOTalonFX(OLDTunerConstants.BackLeft),
-                new ModuleIOTalonFX(OLDTunerConstants.BackRight));
+                new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                new ModuleIOTalonFX(TunerConstants.FrontRight),
+                new ModuleIOTalonFX(TunerConstants.BackLeft),
+                new ModuleIOTalonFX(TunerConstants.BackRight));
 
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The

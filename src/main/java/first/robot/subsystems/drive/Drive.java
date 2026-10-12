@@ -17,7 +17,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import first.robot.Constants;
 import first.robot.Constants.Mode;
-import first.robot.generated.OLDTunerConstants;
+import first.robot.generated.TunerConstants;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -50,19 +50,19 @@ import org.wpilib.util.Alert.Level;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
-  static final double ODOMETRY_FREQUENCY = OLDTunerConstants.kCANBus.isNetworkFD() ? 250.0 : 100.0;
+  static final double ODOMETRY_FREQUENCY = TunerConstants.kCANBus.isNetworkFD() ? 250.0 : 100.0;
   public static final double DRIVE_BASE_RADIUS =
       Math.max(
           Math.max(
               Math.hypot(
-                  OLDTunerConstants.FrontLeft.LocationX, OLDTunerConstants.FrontLeft.LocationY),
+                  TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
               Math.hypot(
-                  OLDTunerConstants.FrontRight.LocationX, OLDTunerConstants.FrontRight.LocationY)),
+                  TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
           Math.max(
               Math.hypot(
-                  OLDTunerConstants.BackLeft.LocationX, OLDTunerConstants.BackLeft.LocationY),
+                  TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
               Math.hypot(
-                  OLDTunerConstants.BackRight.LocationX, OLDTunerConstants.BackRight.LocationY)));
+                  TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
   private static final double ROBOT_MASS_KG = 74.088;
@@ -73,12 +73,12 @@ public class Drive extends SubsystemBase {
           ROBOT_MASS_KG,
           ROBOT_MOI,
           new ModuleConfig(
-              OLDTunerConstants.FrontLeft.WheelRadius,
-              OLDTunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+              TunerConstants.FrontLeft.WheelRadius,
+              TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
               WHEEL_COF,
               DCMotor.getKrakenX60Foc(1)
-                  .withReduction(OLDTunerConstants.FrontLeft.DriveMotorGearRatio),
-              OLDTunerConstants.FrontLeft.SlipCurrent,
+                  .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
+              TunerConstants.FrontLeft.SlipCurrent,
               1),
           getModuleTranslations());
 
@@ -113,10 +113,10 @@ public class Drive extends SubsystemBase {
       ModuleIO blModuleIO,
       ModuleIO brModuleIO) {
     this.gyroIO = gyroIO;
-    modules[0] = new Module(flModuleIO, 0, OLDTunerConstants.FrontLeft);
-    modules[1] = new Module(frModuleIO, 1, OLDTunerConstants.FrontRight);
-    modules[2] = new Module(blModuleIO, 2, OLDTunerConstants.BackLeft);
-    modules[3] = new Module(brModuleIO, 3, OLDTunerConstants.BackRight);
+    modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
+    modules[1] = new Module(frModuleIO, 1, TunerConstants.FrontRight);
+    modules[2] = new Module(blModuleIO, 2, TunerConstants.BackLeft);
+    modules[3] = new Module(brModuleIO, 3, TunerConstants.BackRight);
 
     // Usage reporting for swerve template
     // HAL.report(tResourceType.kResourceType_RobotDrive,
@@ -232,7 +232,7 @@ public class Drive extends SubsystemBase {
     SwerveModuleVelocity[] setpointStates = kinematics.toSwerveModuleVelocities(discreteSpeeds);
     setpointStates =
         SwerveDriveKinematics.desaturateWheelVelocities(
-            setpointStates, OLDTunerConstants.kSpeedAt12Volts);
+            setpointStates, TunerConstants.kSpeedAt12Volts);
 
     // Log unoptimized setpoints and setpoint speeds
     Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
@@ -358,7 +358,7 @@ public class Drive extends SubsystemBase {
 
   /** Returns the maximum linear speed in meters per sec. */
   public double getMaxLinearSpeedMetersPerSec() {
-    return OLDTunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    return TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
   }
 
   /** Returns the maximum angular speed in radians per sec. */
@@ -370,12 +370,12 @@ public class Drive extends SubsystemBase {
   public static Translation2d[] getModuleTranslations() {
     return new Translation2d[] {
       new Translation2d(
-          OLDTunerConstants.FrontLeft.LocationX, OLDTunerConstants.FrontLeft.LocationY),
+          TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
       new Translation2d(
-          OLDTunerConstants.FrontRight.LocationX, OLDTunerConstants.FrontRight.LocationY),
-      new Translation2d(OLDTunerConstants.BackLeft.LocationX, OLDTunerConstants.BackLeft.LocationY),
+          TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+      new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
       new Translation2d(
-          OLDTunerConstants.BackRight.LocationX, OLDTunerConstants.BackRight.LocationY)
+          TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
   }
 }
