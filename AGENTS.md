@@ -19,11 +19,8 @@
    - `<Name>.java`: Extends `SubsystemBase`. Consumes inputs via `io.updateInputs(inputs)`, logs telemetry via `Logger.processInputs(...)`, and exposes command factories.
 
 3. External Dependencies & Target APIs:
-   - Consult `./.context/dependencies.json` before generating or modifying vendor-specific code.
-   - Consult `./.context/docs/wpilib-2027-alpha.md` for breaking changes in WPILib 2027 before using 2024–2026 legacy patterns.
+   - Consult `vendordeps/*.json` and `build.gradle`
+   - Consult `.agents/docs/wpilib-2027-alpha.md` for breaking changes in WPILib 2027 before using 2024–2026 legacy patterns.
 
-   ## Definition of Done & Context Maintenance
-   ## Automated Context Maintenance Protocol
-1. New Subsystems: Whenever a prompt requests adding a new subsystem, create a dedicated folder at `src/main/java/first/robot/subsystems/<name>/` containing the full 4-file AdvantageKit IO suite, and add the subsystem entry to `./.context/architecture.md`.
-2. Vendor Library Updates: If `vendordeps/*.json` or dependencies in `build.gradle` are modified, update the versions and notes in `./.context/dependencies.json`.
-3. WPILib Release Transition: When upgrading from 2027-alpha to the official 2027 release, update the `wpilib_target` object in `./.context/dependencies.json` and replace the beta URL in `./.context/docs/wpilib-2027-alpha.md`.
+## Definition of Done & Context Maintenance
+1. New Subsystems: Whenever a prompt requests adding a new subsystem, create a dedicated folder at `src/main/java/first/robot/subsystems/<name>/` containing the , and add the subsystem entry to `.agents/architecture.md`.

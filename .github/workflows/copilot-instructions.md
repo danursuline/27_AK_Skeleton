@@ -1,1 +1,0 @@
-Refer to ./AGENTS.md for coding guidelines, AdvantageKit patterns, and repository rules.

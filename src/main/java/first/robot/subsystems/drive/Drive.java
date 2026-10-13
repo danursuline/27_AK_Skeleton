@@ -241,7 +241,6 @@ public class Drive extends SubsystemBase {
 
     // Log the optimized velocities returned by each module.
     Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
-
   }
 
   /** Runs the drive in a straight line with the specified drive output. */
