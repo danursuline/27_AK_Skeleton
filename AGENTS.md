@@ -6,7 +6,7 @@
 - Architecture Paradigm: Commands V2 + AdvantageKit (Log-Replay Hardware Abstraction)
 
 ## Strict Package & Import Guardrails
-- WPILib Namespace: NEVER use `edu.wpi.first.*`. All WPILib imports must strictly use `org.wpilib.*` (e.g., `org.wpilib.wpilibj2.command.Commands`, `org.wpilib.units.*`).
+- WPILib Namespace: NEVER use `edu.wpi.first.*`. All WPILib imports must strictly use `org.wpilib.*` (e.g., `org.wpilib.command2.Commands`, `org.wpilib.math.geometry.Pose2d`, `org.wpilib.units.*`). The 2027 layout is not a simple prefix swap; when unsure, copy the import from an existing file in `src/main/java/`.
 - Detailed API Notes: Consult `./.agents/docs/wpilib-2027-alpha.md` for breaking changes and type-safe unit requirements before writing robot code.
 
 ## Subsystem Architecture & Directory Isolation
@@ -43,3 +43,7 @@ Before considering any task complete:
 1. Zero Legacy Imports: Verify that no imports starting with `edu.wpi.first` exist in generated or modified code.
 
 2. Subsystem Isolation: When creating a subsystem, ensure it has its own directory at `src/main/java/first/robot/subsystems/<name>/`, implements the AdvantageKit IO pattern, and is registered in `.agents/architecture.md`.
+
+3. Build Passes: Run `./gradlew build` and fix any compile errors or test failures before reporting the task done.
+
+4. Bindings Registered: When adding or changing controller bindings, update the bindings table in `.agents/architecture.md`.
