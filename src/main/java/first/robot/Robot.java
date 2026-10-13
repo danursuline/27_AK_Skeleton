@@ -7,6 +7,7 @@
 
 package first.robot;
 
+import first.robot.video.VideoRecorder;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -25,6 +26,7 @@ import org.wpilib.command2.CommandScheduler;
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private RobotContainer robotContainer;
+  private VideoRecorder videoRecorder;
 
   public Robot() {
     // Record metadata
@@ -69,6 +71,9 @@ public class Robot extends LoggedRobot {
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.
     robotContainer = new RobotContainer();
+
+    // Start the USB video recorder (REAL mode only; null in SIM and REPLAY)
+    videoRecorder = VideoRecorder.createForMode(Constants.currentMode);
   }
 
   /** This function is called periodically during all modes. */
@@ -84,6 +89,11 @@ public class Robot extends LoggedRobot {
     // This must be called from the robot's periodic block in order for anything in
     // the Command-based framework to work.
     CommandScheduler.getInstance().run();
+
+    // Exchange state with the background video recorder (non-blocking heartbeat)
+    if (videoRecorder != null) {
+      videoRecorder.periodic();
+    }
 
     // Return to non-RT thread priority (do not modify the first argument)
     // Threads.setCurrentThreadPriority(false, 10);
@@ -146,4 +156,16 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {}
+
+  /** Stops the video recorder (bounded) before the normal robot cleanup. */
+  @Override
+  public void close() {
+    try {
+      if (videoRecorder != null) {
+        videoRecorder.close();
+      }
+    } finally {
+      super.close();
+    }
+  }
 }

@@ -14,5 +14,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Grant execute permission
         run: chmod +x gradlew
+      - name: Install FFmpeg for video recorder integration tests
+        run: apt-get update && apt-get install -y --no-install-recommends ffmpeg
+        env:
+          DEBIAN_FRONTEND: noninteractive
       - name: Build robot code
         run: ./gradlew build
+        env:
+          # Fail (instead of skip) the FFmpeg integration tests if FFmpeg is unusable.
+          VIDEO_RECORDER_REQUIRE_FFMPEG: "true"
