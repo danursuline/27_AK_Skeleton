@@ -151,7 +151,7 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     drv.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0° when B button is pressed
+    // Reset gyro to 0° when Menu button is pressed
     drv.menu()
         .onTrue(
             Commands.runOnce(
