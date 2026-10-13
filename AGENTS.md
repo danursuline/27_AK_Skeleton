@@ -2,51 +2,44 @@
 
 ## Core Stack & Target Runtimes
 - Language: Java 25 (Preview features disabled unless explicitly configured in build.gradle)
-- Framework: WPILib 2027 (Alpha/Beta Build)
+- Framework: WPILib 2027 (Alpha/Beta Build) — **Namespace: `org.wpilib.*`**
 - Architecture Paradigm: Commands V2 + AdvantageKit (Log-Replay Hardware Abstraction)
 
-## Subsystem Architecture & Naming Conventions (AdvantageKit)
-The information contained in this section establishes the official team standard for subsystem architecture utilizing the **AdvantageKit** logging framework. Rather than forcing a rigid "one subsystem, one interface" structure, our codebase leverages a **component-driven architecture** to cleanly handle complex mechanisms like Swerve Drive.
+## Strict Package & Import Guardrails
+- WPILib Namespace: NEVER use `edu.wpi.first.*`. All WPILib imports must strictly use `org.wpilib.*` (e.g., `org.wpilib.wpilibj2.command.Commands`, `org.wpilib.units.*`).
+- Detailed API Notes: Consult `./.agents/docs/wpilib-2027-alpha.md` for breaking changes and type-safe unit requirements before writing robot code.
 
-1. Subsystem Isolation:
-   - Every subsystem MUST reside inside its own dedicated subfolder under `src/main/java/first/robot/subsystems/<subsystem_name>/`.
-   - Never place `.java` files directly inside `src/main/java/first/robot/subsystems/`.
-   - All classes within a subsystem directory must belong to the package `first.robot.subsystems.<subsystem_name>;`.
+## Subsystem Architecture & Directory Isolation
+Every subsystem MUST reside inside its own dedicated subfolder under `src/main/java/first/robot/subsystems/<subsystem_name>/`. Never place `.java` files directly inside `subsystems/`. All classes within a subsystem directory belong to `package first.robot.subsystems.<subsystem_name>;`.
 
-Complex subsystems are broken down into sub-components, hardware abstraction interfaces, and performance optimization threads. 
+### 1. Standard Single-Mechanism Subsystems (Intake, Shooter, Elevator)
+For single mechanisms, implement the standard 4-file AdvantageKit IO suite:
+- `<Name>.java`: Master `SubsystemBase` class handling periodic updates, logging, and command factories.
+- `<Name>IO.java`: Hardware abstraction interface defining `@AutoLog public static class <Name>IOInputs`.
+- `<Name>IOSim.java`: Simulation physics implementation.
+- `<Name>IOTalonFX.java`: Concrete CTRE Phoenix 6 hardware implementation.
 
-2. Component-Driven Breakdown
+### 2. Complex Component-Driven Subsystems (example: Swerve Drive)
+For multi-component systems, break down subsystems into sub-components, hardware interfaces, and optimization threads:
+
 | Class / File | Architectural Role & Purpose |
 | :--- | :--- |
-| **`Drive.java`** | The master WPILib `SubsystemBase` class. It manages high-level state, runs kinematics/odometry, coordinates sub-components, and schedules commands. |
-| **`Module.java`** | A logical state handler for a single swerve module. It coordinates a localized `ModuleIO` instance and handles unit conversions or specific closed-loop control states. |
-| **`ModuleIO.java`** | The hardware abstraction interface for a single module. Defines the `@AutoLog` data structure (`ModuleIOInputs`) for motors and encoders. |
-| **`ModuleIOTalonFX.java`** | Concrete hardware implementation of `ModuleIO` utilizing the CTRE Phoenix 6 API. |
-| **`GyroIO.java`** | The hardware abstraction interface for the robot's IMU/gyro telemetry. |
+| **`Drive.java`** | Master `SubsystemBase`. Coordinates state, runs kinematics/odometry, coordinates sub-components, and schedules commands. |
+| **`Module.java`** | Logical state handler for a single module. Coordinates a localized `ModuleIO` instance and handles unit conversions and closed-loop states. |
+| **`ModuleIO.java`** | Hardware abstraction interface for a module. Defines the `@AutoLog` data structure (`ModuleIOInputs`) for drive/steer motors and encoders. |
+| **`ModuleIOTalonFX.java`** | Concrete hardware implementation of `ModuleIO` using CTRE Phoenix 6. |
+| **`GyroIO.java`** | Hardware abstraction interface for the robot IMU/gyro. |
 | **`GyroIOPigeon2.java`** | Concrete hardware implementation of `GyroIO` for a CTRE Pigeon 2. |
-| **`PhoenixOdometryThread.java`** | A high-frequency optimization thread that samples Phoenix 6 CAN signals at 250Hz+ for ultra-precise odometry. |
-
----
-
-3. Directory Layout
-
-Keep all files associated with a subsystem grouped inside a single package folder. This makes code reviews, hardware isolation, and maintenance highly efficient.
-
-```text
-src/main/java/first/robot/subsystems/drive/
-├── Drive.java                 # Master Subsystem coordinating all components
-├── GyroIO.java                # Gyro Hardware Interface
-├── GyroIOPigeon2.java         # Physical Gyro Implementation
-├── Module.java                # Module Coordinator (Logic & Closed-Loops)
-├── ModuleIO.java              # Module Hardware Interface
-├── ModuleIOTalonFX.java       # Physical Module Implementation (CTRE)
-└── PhoenixOdometryThread.java  # High-frequency signal sampling thread
-```
+| **`PhoenixOdometryThread.java`** | High-frequency signal sampling thread (250Hz+) for Phoenix 6 CAN status signals. |
 
 ## Dependencies & Target APIs
 1. External Dependencies & Target APIs:
-   - Consult `vendordeps/*.json` and `build.gradle`
-   - Consult `.agents/docs/wpilib-2027-alpha.md` for breaking changes in WPILib 2027 before using 2024–2026 legacy patterns.
+   - Always consult `vendordeps/*.json`, `build.gradle` before introducing or modifying 3rd-party vendor code.
+   - Always Consult `.agents/docs/wpilib-2027-alpha.md` for breaking changes in WPILib 2027 before using 2024–2026 legacy patterns.
 
 ## Definition of Done & Context Maintenance
-1. New Subsystems: Whenever a prompt requests adding a new subsystem, create a dedicated folder at `src/main/java/first/robot/subsystems/<name>/` containing the , and add the subsystem entry to `.agents/architecture.md`.
+Before considering any task complete:
+
+1. Zero Legacy Imports: Verify that no imports starting with `edu.wpi.first` exist in generated or modified code.
+
+2. Subsystem Isolation: When creating a subsystem, ensure it has its own directory at `src/main/java/first/robot/subsystems/<name>/`, implements the AdvantageKit IO pattern, and is registered in `.agents/architecture.md`.
