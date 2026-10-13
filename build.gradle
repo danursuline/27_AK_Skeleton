@@ -93,6 +93,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // Robot/AdvantageKit/HAL singletons must not leak between integration-test classes.
+    forkEvery = 1
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
@@ -119,6 +121,96 @@ jar {
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
+}
+
+// T09: bind deployed logs to the exact packaged source, including dirty edits.
+// Generated identity is outside src so it cannot hash itself.
+def hubIdentityDir = layout.buildDirectory.dir('generated/testhub/resources')
+// gversion's BuildConstants.java embeds the build time, so it is excluded to keep hashes stable.
+def hubIdentityGenerated = '**/BuildConstants.java'
+def hubIdentityInputs = files(fileTree('src/main') { exclude hubIdentityGenerated }, fileTree('vendordeps'),
+file('build.gradle'), file('settings.gradle'), file('gradle/wrapper/gradle-wrapper.properties'),
+file('.wpilib/wpilib_preferences.json'))
+def generateHubBuildIdentity = tasks.register('generateHubBuildIdentity') {
+    inputs.files(hubIdentityInputs)
+    outputs.file(hubIdentityDir.map { it.file('testhub-build.properties') })
+    outputs.upToDateWhen { false } // Git commit/dirty metadata must refresh even with unchanged bytes.
+    mustRunAfter(createVersionFile, spotlessApply) // Hash sources after formatting rewrites them.
+    doLast {
+        def digestFiles = { collection ->
+            def digest = java.security.MessageDigest.getInstance('SHA-256')
+            collection.files.findAll { it.isFile() }.sort { a, b ->
+                project.relativePath(a) <=> project.relativePath(b)
+            }.each { source ->
+                def path = project.relativePath(source).replace('\\', '/').getBytes('UTF-8')
+                def bytes = source.bytes
+                digest.update(java.nio.ByteBuffer.allocate(4).putInt(path.length).array())
+                digest.update(path)
+                digest.update(java.nio.ByteBuffer.allocate(8).putLong(bytes.length).array())
+                digest.update(bytes)
+            }
+            java.util.HexFormat.of().formatHex(digest.digest())
+        }
+        def git = { arguments ->
+            try {
+                def result = providers.exec {
+                    commandLine(['git'] + arguments)
+                    ignoreExitValue = true
+                }
+                result.result.get().exitValue == 0 ? result.standardOutput.asText.get().trim() : 'unavailable'
+            } catch (Exception ignored) {
+                'unavailable'
+            }
+        }
+        def versions = new TreeMap<String, String>()
+        versions.put('WPILib', '2027.0.0-alpha-7')
+        versions.put('Java', System.getProperty('java.version'))
+        fileTree('vendordeps').matching { include '*.json' }.files.each { manifest ->
+            def vendor = new groovy.json.JsonSlurper().parse(manifest)
+            versions.put(vendor.name.toString(), vendor.version.toString())
+        }
+        def identity = new Properties()
+        identity.setProperty('project_name', project.name)
+        identity.setProperty('build_utc', java.time.Instant.now().toString())
+        identity.setProperty('git_sha', git(['rev-parse', 'HEAD']))
+        identity.setProperty('git_branch', git([
+            'rev-parse',
+            '--abbrev-ref',
+            'HEAD'
+        ]))
+        def dirty = git([
+            'status',
+            '--porcelain',
+            '--untracked-files=normal'
+        ])
+        identity.setProperty('git_dirty', dirty == 'unavailable' ? 'unavailable' : Boolean.toString(!dirty.isEmpty()))
+        identity.setProperty('source_sha256', digestFiles(hubIdentityInputs))
+        identity.setProperty('config_sha256', digestFiles(files(fileTree('src/main/java') { exclude hubIdentityGenerated }, fileTree('src/main/deploy'), fileTree('vendordeps'))))
+        identity.setProperty('library_versions', groovy.json.JsonOutput.toJson(versions))
+        identity.setProperty('snapshot_reference', 'application JAR: backup/src, backup/vendordeps, backup/build.gradle, backup/settings.gradle, backup/gradle, backup/.wpilib')
+        identity.setProperty('artifact_hash_reference', 'build/reports/testhub/artifact-sha256.txt (external sidecar; not embedded in its own JAR)')
+        def output = hubIdentityDir.get().file('testhub-build.properties').asFile
+        output.parentFile.mkdirs()
+        output.withOutputStream { identity.store(it, 'Generated T09 build identity; nanosecond status uses a separate live boot identity') }
+    }
+}
+sourceSets.main.resources.srcDir(hubIdentityDir)
+processResources.dependsOn(generateHubBuildIdentity)
+jar {
+    from('settings.gradle') { into 'backup' }
+    from('gradle/wrapper/gradle-wrapper.properties') { into 'backup/gradle/wrapper' }
+    from('.wpilib/wpilib_preferences.json') { into 'backup/.wpilib' }
+    doLast {
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        archiveFile.get().asFile.withInputStream { stream ->
+            byte[] block = new byte[1024 * 1024]
+            int count
+            while ((count = stream.read(block)) >= 0) digest.update(block, 0, count)
+        }
+        def report = layout.buildDirectory.file('reports/testhub/artifact-sha256.txt').get().asFile
+        report.parentFile.mkdirs()
+        report.setText(java.util.HexFormat.of().formatHex(digest.digest()) + '  ' + archiveFile.get().asFile.name + '\n', 'UTF-8')
+    }
 }
 
 
@@ -169,6 +261,8 @@ createVersionFile.dependsOn(eventDeploy)
 // Spotless formatting
 project.compileJava.dependsOn(spotlessApply)
 spotless {
+    // Repository files are LF; platform-native endings would mark every Windows build dirty.
+    lineEndings = com.diffplug.spotless.LineEnding.UNIX
     java {
         target fileTree(".") {
             include "**/*.java"

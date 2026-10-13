@@ -11,6 +11,7 @@ import static first.robot.util.PhoenixUtil.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
@@ -32,6 +33,7 @@ import java.util.Queue;
 import org.wpilib.math.filter.Debouncer;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.util.Units;
+import org.wpilib.system.RobotController;
 import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Current;
@@ -90,6 +92,14 @@ public class ModuleIOTalonFX implements ModuleIO {
       new Debouncer(0.5, Debouncer.DebounceType.FALLING);
   private final Debouncer turnEncoderConnectedDebounce =
       new Debouncer(0.5, Debouncer.DebounceType.FALLING);
+
+  private final PhoenixSignalObservation.Tracker driveVelocityObservation =
+      new PhoenixSignalObservation.Tracker();
+  private final PhoenixSignalObservation.Tracker turnPositionObservation =
+      new PhoenixSignalObservation.Tracker();
+  private final PhoenixSignalObservation.ClockTracker observationClocks =
+      new PhoenixSignalObservation.ClockTracker();
+  private long observationSequence = 0;
 
   public ModuleIOTalonFX(
       SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
@@ -186,6 +196,8 @@ public class ModuleIOTalonFX implements ModuleIO {
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
+    long robotObservationStartNs = RobotController.getTime();
+    double vendorObservationStartSeconds = Utils.getCurrentTimeSeconds();
     // Refresh all signals
     var driveStatus =
         BaseStatusSignal.refreshAll(drivePosition, driveVelocity, driveAppliedVolts, driveCurrent);
@@ -193,10 +205,46 @@ public class ModuleIOTalonFX implements ModuleIO {
         BaseStatusSignal.refreshAll(turnPosition, turnVelocity, turnAppliedVolts, turnCurrent);
     var turnEncoderStatus = BaseStatusSignal.refreshAll(turnAbsolutePosition);
 
+    // These exact Java signal objects are scheduler-owned. The odometry thread
+    // refreshes separate deep-cloned position signals, not these cached objects.
+    var driveVelocitySample = PhoenixSignalObservation.copyCached(driveVelocity);
+    var turnPositionSample = PhoenixSignalObservation.copyCached(turnPosition);
+    double vendorObservationEndSeconds = Utils.getCurrentTimeSeconds();
+    long robotObservationEndNs = RobotController.getTime();
+    var clockObservation =
+        observationClocks.observe(
+            robotObservationStartNs,
+            robotObservationEndNs,
+            vendorObservationStartSeconds,
+            vendorObservationEndSeconds);
+
+    inputs.phoenixDiagnosticsPresent = true;
+    inputs.phoenixDiagnosticsProfile = PhoenixSignalObservation.PROFILE;
+    inputs.phoenixSnapshotMethod = PhoenixSignalObservation.SNAPSHOT_METHOD;
+    inputs.phoenixObservationSequence = ++observationSequence;
+    inputs.phoenixRobotObservationStartNs = robotObservationStartNs;
+    inputs.phoenixRobotObservationEndNs = robotObservationEndNs;
+    inputs.phoenixVendorObservationStartSeconds = vendorObservationStartSeconds;
+    inputs.phoenixVendorObservationEndSeconds = vendorObservationEndSeconds;
+    inputs.phoenixObservationClockValid = clockObservation.valid();
+    inputs.phoenixObservationClockRegressed = clockObservation.regressed();
+    inputs.phoenixPhysicalAcquisitionTimeQualified = false;
+    inputs.phoenixNativeTimestampAvailabilityQualified = false;
+    inputs.phoenixDriveGroupRefreshStatusCode = driveStatus.value;
+    inputs.phoenixDriveGroupRefreshStatusOk = driveStatus.isOK();
+    inputs.phoenixTurnGroupRefreshStatusCode = turnStatus.value;
+    inputs.phoenixTurnGroupRefreshStatusOk = turnStatus.isOK();
+    driveVelocityObservation
+        .observe(driveVelocitySample, vendorObservationStartSeconds, vendorObservationEndSeconds)
+        .writeDrive(inputs);
+    turnPositionObservation
+        .observe(turnPositionSample, vendorObservationStartSeconds, vendorObservationEndSeconds)
+        .writeTurn(inputs);
+
     // Update drive inputs
     inputs.driveConnected = driveConnectedDebounce.calculate(driveStatus.isOK());
     inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble());
-    inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble());
+    inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocitySample.rawValue());
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = driveCurrent.getValueAsDouble();
 
@@ -204,7 +252,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.turnConnected = turnConnectedDebounce.calculate(turnStatus.isOK());
     inputs.turnEncoderConnected = turnEncoderConnectedDebounce.calculate(turnEncoderStatus.isOK());
     inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
-    inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble());
+    inputs.turnPosition = Rotation2d.fromRotations(turnPositionSample.rawValue());
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble());
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = turnCurrent.getValueAsDouble();

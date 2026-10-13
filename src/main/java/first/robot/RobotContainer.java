@@ -178,4 +178,10 @@ public class RobotContainer {
     //   return autoChooser.get();
     return null;
   }
+
+  /** Name of the selected autonomous routine, reported to the Test Hub. */
+  public String getSelectedAutoName() {
+    // return autoChooser.getSendableChooser().getSelected();
+    return "none";
+  }
 }

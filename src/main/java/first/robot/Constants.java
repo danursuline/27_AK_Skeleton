@@ -18,6 +18,9 @@ public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 
+  /** Reported in the Test Hub configuration snapshot; set true when tuning values live. */
+  public static final boolean tuningMode = false;
+
   public static enum Mode {
     /** Running on a real robot. */
     REAL,
