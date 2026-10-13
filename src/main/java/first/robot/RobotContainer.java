@@ -161,7 +161,7 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     drv
-        .b()
+        .menu()
         .onTrue(
             Commands.runOnce(
                     () ->
