@@ -1,0 +1,1 @@
+Read and strictly adhere to all architecture, subsystem, and dependency instructions in ./AGENTS.md.
