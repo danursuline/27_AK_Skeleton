@@ -16,6 +16,8 @@ copy it from an existing file in `src/main/java/` (e.g. `RobotContainer.java`,
 
 ## 1. Zero-Tolerance Namespace Guardrail
 Never import from `edu.wpi.first.*`. All WPILib components belong to `org.wpilib.*`:
+- Robot base package is strictly `first.robot.*` (NEVER `frc.robot.*`).
+- There is NO `org.wpilib.wpilibj.*` package! Classes previously in `wpilibj` are now divided into dedicated packages (`driverstation`, `framework`, `system`, `smartdashboard`, `hardware.*`, `util`).
 - NEVER `import edu.wpi.first.wpilibj2.command.Commands;`
 - NEVER `import org.wpilib.wpilibj2.command.Commands;` (does not exist)
 - OK `import org.wpilib.command2.Commands;`
@@ -30,7 +32,21 @@ Common mappings used in this repo:
 | `edu.wpi.first.wpilibj2.command.button.*` | `org.wpilib.command2.button.*` |
 | `edu.wpi.first.wpilibj2.command.sysid.*` | `org.wpilib.command2.sysid.*` |
 | `edu.wpi.first.math.*` | `org.wpilib.math.*` |
+| `edu.wpi.first.math.util.MathUtil` | `org.wpilib.math.util.MathUtil` |
 | `edu.wpi.first.units.*` | `org.wpilib.units.*` |
+| `edu.wpi.first.wpilibj.DriverStation` | `org.wpilib.driverstation.DriverStation` |
+| `edu.wpi.first.wpilibj.XboxController` | `org.wpilib.driverstation.XboxController` |
+| `edu.wpi.first.wpilibj.GenericHID` | `org.wpilib.driverstation.GenericHID` |
+| `edu.wpi.first.wpilibj.Joystick` | `org.wpilib.driverstation.Joystick` |
+| `edu.wpi.first.wpilibj.RobotState` | `org.wpilib.driverstation.RobotState` |
+| `edu.wpi.first.wpilibj.DriverStation.Alliance` | `org.wpilib.driverstation.Alliance` |
+| `edu.wpi.first.wpilibj.RobotBase` | `org.wpilib.framework.RobotBase` |
+| `edu.wpi.first.wpilibj.TimedRobot` | `org.wpilib.framework.TimedRobot` |
+| `edu.wpi.first.wpilibj.Timer` | `org.wpilib.system.Timer` |
+| `edu.wpi.first.wpilibj.RobotController` | `org.wpilib.system.RobotController` |
+| `edu.wpi.first.wpilibj.Alert` | `org.wpilib.util.Alert` |
+| `edu.wpi.first.wpilibj.smartdashboard.*` | `org.wpilib.smartdashboard.*` |
+| `edu.wpi.first.wpilibj.motorcontrol.*` | `org.wpilib.hardware.motor.*` |
 
 ---
 
