@@ -38,6 +38,14 @@ For multi-component systems, break down subsystems into sub-components, hardware
    - Always consult `vendordeps/*.json`, `build.gradle` before introducing or modifying 3rd-party vendor code.
    - Always Consult `.agents/docs/wpilib-2027-alpha.md` for breaking changes in WPILib 2027 before using 2024–2026 legacy patterns.
 
+## Git & Pull Request Policy
+- **Minor Updates & Fixes:** Minor code changes, constant tuning, small bug fixes, and documentation updates may be made directly within the existing branch context.
+- **New Features & Systems Changes:** Any new subsystem, major architectural modification, or substantial new feature must NEVER be committed directly to `main`. Instead:
+  1. Create a dedicated branch off `main` before starting changes (e.g., `git checkout -b feature/<name>` or `pr/<name>`).
+  2. Implement, format (`./gradlew spotlessApply`), and verify (`./gradlew build`).
+  3. Push the branch to `origin` and provide the Pull Request link targeting `main`.
+  4. Keep the local `main` branch clean and synchronized.
+
 ## Definition of Done & Context Maintenance
 Before considering any task complete:
 
@@ -52,3 +60,5 @@ Before considering any task complete:
 5. Formatting Passes: Run `./gradlew spotlessApply` (or ensure `./gradlew spotlessCheck` passes) to conform to project code style.
 
 6. Bindings Registered: When adding or changing controller bindings, update the bindings table in `.agents/architecture.md`.
+
+7. PR Delivery for Systems/Features: If the task introduces a new subsystem, major feature, or architectural change, ensure it is delivered via a Pull Request targeting `main` rather than committed directly to `main`.
