@@ -14,6 +14,10 @@ import first.robot.subsystems.drive.GyroIO;
 import first.robot.subsystems.drive.GyroIOPigeon2;
 import first.robot.subsystems.drive.ModuleIO;
 import first.robot.subsystems.drive.ModuleIOTalonFX;
+import first.robot.subsystems.elevator.Elevator;
+import first.robot.subsystems.elevator.ElevatorIO;
+import first.robot.subsystems.elevator.ElevatorIOSim;
+import first.robot.subsystems.elevator.ElevatorIOTalonFX;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.button.CommandXboxController;
@@ -34,6 +38,7 @@ import org.wpilib.math.geometry.Rotation2d;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Elevator elevator;
 
   // Controller
   private final CommandXboxController drv = new CommandXboxController(0);
@@ -56,6 +61,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
+        elevator = new Elevator(new ElevatorIOTalonFX());
 
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
@@ -93,6 +99,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        elevator = new Elevator(new ElevatorIOSim());
         break;
 
       default:
@@ -104,6 +111,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        elevator = new Elevator(new ElevatorIO() {});
         break;
     }
 
@@ -160,6 +168,12 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.ZERO)),
                     drive)
                 .ignoringDisable(true));
+
+    // Elevator (1706-style trap): hold A to raise, release to stow and re-home
+    op.a().onTrue(elevator.raiseToTrap()).onFalse(elevator.lowerAndRehome());
+
+    // Home the elevator against the bottom hard stop
+    op.view().onTrue(elevator.home());
   }
 
   /**
